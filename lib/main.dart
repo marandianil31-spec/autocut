@@ -1,4 +1,6 @@
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:video_player/video_player.dart';
@@ -39,7 +41,9 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final ImagePicker picker = ImagePicker();
+
   VideoPlayerController? controller;
+
   bool loading = false;
 
   Future<void> pickVideo() async {
@@ -50,7 +54,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
       if (file == null || !mounted) return;
 
-      setState(() => loading = true);
+      setState(() {
+        loading = true;
+      });
 
       final newController = VideoPlayerController.file(
         File(file.path),
@@ -64,24 +70,36 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
       final oldController = controller;
-      controller = newController;
+
+      setState(() {
+        controller = newController;
+        loading = false;
+      });
 
       await oldController?.dispose();
 
-      setState(() => loading = false);
     } catch (e) {
       if (!mounted) return;
-      setState(() => loading = false);
+
+      setState(() {
+        loading = false;
+      });
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Video error: $e')),
+        SnackBar(
+          content: Text('Video Error: $e'),
+        ),
       );
     }
   }
 
-  @override
-  void dispose() {
-    controller?.dispose();
-    super.dispose();
+  void showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   Widget featureButton(
@@ -97,14 +115,22 @@ class _HomeScreenState extends State<HomeScreen> {
         decoration: BoxDecoration(
           color: const Color(0xFF171A24),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white10),
+          border: Border.all(
+            color: Colors.white10,
+          ),
         ),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 27, color: const Color(0xFFAC8AFF)),
+            Icon(
+              icon,
+              size: 27,
+              color: const Color(0xFFAC8AFF),
+            ),
             const SizedBox(height: 9),
             Text(
               title,
+              textAlign: TextAlign.center,
               style: const TextStyle(
                 fontWeight: FontWeight.w600,
                 fontSize: 13,
@@ -114,6 +140,12 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    controller?.dispose();
+    super.dispose();
   }
 
   @override
@@ -133,16 +165,22 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: const [
           Padding(
             padding: EdgeInsets.only(right: 18),
-            child: Icon(Icons.auto_awesome, color: Color(0xFFAC8AFF)),
+            child: Icon(
+              Icons.auto_awesome,
+              color: Color(0xFFAC8AFF),
+            ),
           ),
         ],
       ),
+
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(18),
+
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+
               const Text(
                 'Create Amazing Videos',
                 style: TextStyle(
@@ -150,18 +188,25 @@ class _HomeScreenState extends State<HomeScreen> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
+
               const SizedBox(height: 7),
+
               const Text(
                 'Simple editing. Smarter results.',
-                style: TextStyle(color: Colors.white54),
+                style: TextStyle(
+                  color: Colors.white54,
+                ),
               ),
+
               const SizedBox(height: 25),
 
               GestureDetector(
-                onTap: pickVideo,
+                onTap: loading ? null : pickVideo,
+
                 child: Container(
                   height: 220,
                   width: double.infinity,
+
                   decoration: BoxDecoration(
                     color: const Color(0xFF171A24),
                     borderRadius: BorderRadius.circular(22),
@@ -170,11 +215,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       width: 1.2,
                     ),
                   ),
+
                   child: loading
                       ? const Center(
                           child: CircularProgressIndicator(),
                         )
-                      : video != null && video.value.isInitialized
+                      : video != null &&
+                              video.value.isInitialized
                           ? ClipRRect(
                               borderRadius: BorderRadius.circular(22),
                               child: Center(
@@ -186,7 +233,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             )
                           : const Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisAlignment:
+                                  MainAxisAlignment.center,
                               children: [
                                 Icon(
                                   Icons.video_library_outlined,
@@ -214,16 +262,21 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
 
-              if (video != null && video.value.isInitialized) ...[
+              if (video != null &&
+                  video.value.isInitialized) ...[
+
                 const SizedBox(height: 12),
+
                 Row(
                   children: [
                     IconButton(
                       onPressed: () {
                         setState(() {
-                          video.value.isPlaying
-                              ? video.pause()
-                              : video.play();
+                          if (video.value.isPlaying) {
+                            video.pause();
+                          } else {
+                            video.play();
+                          }
                         });
                       },
                       icon: Icon(
@@ -234,8 +287,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         color: const Color(0xFFAC8AFF),
                       ),
                     ),
+
                     const Text('Video Preview'),
+
                     const Spacer(),
+
                     TextButton(
                       onPressed: pickVideo,
                       child: const Text('Change Video'),
@@ -245,6 +301,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
 
               const SizedBox(height: 27),
+
               const Text(
                 'Editing Tools',
                 style: TextStyle(
@@ -252,6 +309,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
+
               const SizedBox(height: 15),
 
               GridView.count(
@@ -261,26 +319,39 @@ class _HomeScreenState extends State<HomeScreen> {
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
                 childAspectRatio: 1.55,
+
                 children: [
+
                   featureButton(
                     Icons.content_cut,
                     'Trim Video',
-                    () => showMessage('Trim feature coming next'),
+                    () => showMessage(
+                      'Trim feature coming next',
+                    ),
                   ),
+
                   featureButton(
                     Icons.graphic_eq,
                     'Audio Effects',
-                    () => showMessage('Audio feature coming next'),
+                    () => showMessage(
+                      'Audio feature coming next',
+                    ),
                   ),
+
                   featureButton(
                     Icons.branding_watermark_outlined,
                     'Watermark Tools',
-                    () => showMessage('Authorized watermark tools coming next'),
+                    () => showMessage(
+                      'Watermark tools coming next',
+                    ),
                   ),
+
                   featureButton(
                     Icons.auto_awesome,
                     'Auto Edit',
-                    () => showMessage('Automatic editing coming next'),
+                    () => showMessage(
+                      'Automatic editing coming next',
+                    ),
                   ),
                 ],
               ),
@@ -290,6 +361,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(19),
+
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
                   gradient: const LinearGradient(
@@ -299,11 +371,18 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                 ),
+
                 child: const Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.auto_awesome, size: 30),
+
+                    Icon(
+                      Icons.auto_awesome,
+                      size: 30,
+                    ),
+
                     SizedBox(height: 12),
+
                     Text(
                       'Copyright-Safe Auto Edit',
                       style: TextStyle(
@@ -311,11 +390,15 @@ class _HomeScreenState extends State<HomeScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+
                     SizedBox(height: 6),
+
                     Text(
                       'Upload your video and let AutoCut '
                       'prepare it with licensed audio and effects.',
-                      style: TextStyle(color: Colors.white70),
+                      style: TextStyle(
+                        color: Colors.white70,
+                      ),
                     ),
                   ],
                 ),
@@ -324,12 +407,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  void showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
     );
   }
 }
