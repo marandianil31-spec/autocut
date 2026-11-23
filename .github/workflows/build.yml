@@ -1,4 +1,3 @@
-
 name: AutoCut APK Build
 
 on:
@@ -29,6 +28,18 @@ jobs:
 
       - name: Generate Android Project
         run: flutter create --platforms=android --project-name autocut .
+
+      - name: Configure Maven Repositories
+        run: |
+          cat >> android/build.gradle <<'EOF'
+
+          allprojects {
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+          EOF
 
       - name: Configure Android Lint
         run: |
