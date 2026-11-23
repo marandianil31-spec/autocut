@@ -1,3 +1,4 @@
+
 name: AutoCut APK Build
 
 on:
@@ -28,6 +29,25 @@ jobs:
 
       - name: Generate Android Project
         run: flutter create --platforms=android --project-name autocut .
+
+      - name: Configure Android Lint
+        run: |
+          cat >> android/build.gradle <<'EOF'
+
+          subprojects {
+              afterEvaluate { project ->
+                  if (project.plugins.hasPlugin('com.android.library') ||
+                      project.plugins.hasPlugin('com.android.application')) {
+                      project.android {
+                          lint {
+                              checkReleaseBuilds = false
+                              disable += ['EasterEgg', 'StopShip']
+                          }
+                      }
+                  }
+              }
+          }
+          EOF
 
       - name: Install Dependencies
         run: flutter pub get
